@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ppo-mujoco-halfcheetah"
+version = "0.1.0"
+description = ""
+authors = ["Giansimone Perrino <ghello@giansimone.dev>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.13,<3.14"
+torch = "^2.9.0"
+gymnasium = {extras = ["mujoco"], version = "^1.2.1"}
+imageio = {extras = ["ffmpeg"], version = "^2.37.0"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
