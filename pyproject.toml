@@ -10,7 +10,8 @@ readme = "README.md"
 python = ">=3.13,<3.14"
 torch = "^2.9.0"
 gymnasium = {extras = ["mujoco"], version = "^1.2.1"}
-imageio = {extras = ["ffmpeg"], version = "^2.37.0"}
+tensorboard = "^2.20.0"
+pyyaml = "^6.0.3"
 
 
 [build-system]
