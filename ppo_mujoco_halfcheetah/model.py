@@ -1,3 +1,6 @@
+"""
+Actor-Critic Network for PPO agent in MuJoCo Half Cheetah environment.
+"""
 from typing import Tuple
 
 import torch
@@ -7,49 +10,63 @@ from torch.distributions.normal import Normal
 
 class ActorCritic(nn.Module):
     """Actor-Critic Network for continuous action space."""
-    def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 256):
+    def __init__(self, state_dim: int, action_dim: int, hidden_dim: int):
         super().__init__()
 
-        self.actor = nn.Sequential(
+        self.body = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
-            nn.Tanh(),
+            nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
-            nn.Tanh(),
-            nn.Linear(hidden_dim, action_dim),
+            nn.ReLU(),
         )
 
-        self.log_std = nn.Parameter(torch.zeros(1, action_dim))
+        self.actor_head = nn.Linear(hidden_dim, action_dim)
+        self.critic_head = nn.Linear(hidden_dim, 1)
 
-        self.critic = nn.Sequential(
-            nn.Linear(state_dim, hidden_dim),
-            nn.Tanh(),
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.Tanh(),
-            nn.Linear(hidden_dim, 1),
-        )
+        self.log_std_head = nn.Linear(hidden_dim, action_dim)
 
     def forward(
             self,
             state: torch.Tensor,
         ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        value = self.critic(state)
-        action_mean = self.actor(state)
-        action_std = self.log_std.exp().expand_as(action_mean)
+        x = self.body(state)
 
-        return action_mean, action_std, value
+        action_mean = self.actor_head(x)
 
-    def get_action_value(
+        action_log_std = self.log_std_head(x)
+        action_log_std = torch.clamp(action_log_std, min=-20, max=3)
+        action_std = action_log_std.exp()
+
+        state_value = self.critic_head(x)
+
+        return action_mean, action_std, state_value
+
+    def act(
         self,
         state: torch.Tensor,
-        action: torch.Tensor | None = None
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        action_mean, action_std, value = self.forward(state)
-        dist = Normal(action_mean, action_std)
+        deterministic: bool,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        action_mean, action_std, state_value = self.forward(state)
 
-        if action is None:
-            action = dist.sample()
+        dist = Normal(action_mean, action_std)
+        
+        action = action_mean if deterministic else dist.sample()
 
         action_log_prob = dist.log_prob(action).sum(dim=-1)
-        entropy = dist.entropy().sum(dim=-1)
 
-        return action, action_log_prob, value, entropy
+        return action.detach(), action_log_prob.detach(), state_value.detach()
+
+    def evaluate(
+        self,
+        state: torch.Tensor,
+        action: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        action_mean, action_std, state_value = self.forward(state)
+
+        dist = Normal(action_mean, action_std)
+
+        action_log_prob = dist.log_prob(action).sum(dim=-1)
+
+        dist_entropy = dist.entropy().sum(dim=-1)
+
+        return action_log_prob, state_value, dist_entropy

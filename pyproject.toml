@@ -2,7 +2,7 @@
 name = "ppo-mujoco-halfcheetah"
 version = "0.1.0"
 description = ""
-authors = ["Giansimone Perrino <ghello@giansimone.dev>"]
+authors = ["Giansimone Perrino <hello@giansimone.dev>"]
 license = "MIT"
 readme = "README.md"
 
@@ -10,8 +10,9 @@ readme = "README.md"
 python = ">=3.13,<3.14"
 torch = "^2.9.0"
 gymnasium = {extras = ["mujoco"], version = "^1.2.1"}
-tensorboard = "^2.20.0"
 pyyaml = "^6.0.3"
+huggingface-hub = "^1.1.2"
+imageio = {extras = ["ffmpeg"], version = "^2.37.2"}
 
 
 [build-system]
