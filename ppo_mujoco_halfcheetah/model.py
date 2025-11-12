@@ -7,6 +7,9 @@ import torch
 from torch import nn
 from torch.distributions.normal import Normal
 
+LOG_STD_MIN = -20
+LOG_STD_MAX = 3
+
 
 class ActorCritic(nn.Module):
     """Actor-Critic Network for continuous action space."""
@@ -34,7 +37,9 @@ class ActorCritic(nn.Module):
         action_mean = self.actor_head(x)
 
         action_log_std = self.log_std_head(x)
-        action_log_std = torch.clamp(action_log_std, min=-20, max=3)
+        action_log_std = torch.clamp(
+            action_log_std, min=LOG_STD_MIN, max=LOG_STD_MAX
+        )
         action_std = action_log_std.exp()
 
         state_value = self.critic_head(x)
