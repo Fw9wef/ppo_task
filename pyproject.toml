@@ -1,10 +1,30 @@
 [tool.poetry]
 name = "ppo-mujoco-halfcheetah"
 version = "0.1.0"
-description = ""
+description = "A PyTorch implementation of Proximal Policy Optimization (PPO) for training an agent to solve the HalfCheetah-v5 environment from Gymnasium using MuJoCo."
 authors = ["Giansimone Perrino <hello@giansimone.dev>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/giansimone/ppo-mujoco-halfcheetah"
+packages = [
+    { include = "ppo_mujoco_halfcheetah" }
+]
+keywords = [
+    "reinforcement-learning",
+    "deep-reinforcement-learning",
+    "proximal-policy-optimization",
+    "ppo",
+    "mujoco",
+    "gymnasium",
+    "halfcheetah",
+    "pytorch",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.13,<3.14"

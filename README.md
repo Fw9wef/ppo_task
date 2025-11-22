@@ -6,24 +6,35 @@ A PyTorch implementation of the Proximal Policy Optimisation (PPO) algorithm to 
 
 ## Installation
 
-You can clone the repository and install the required dependencies using Poetry or pip. 
+You can clone the repository and install the required dependencies using Poetry or pip. This project requires **Python 3.13**.
 
-Using Poetry:
+### Using Poetry (Recommended)
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/giansimone/ppo-mujoco-halfcheetah.git
 cd ppo-mujoco-halfcheetah
+
+# 2. Initialize environment and install dependencies
+poetry env use python3.13
 poetry install
-poetry shell
+
+# 3. Activate the shell
+eval $(poetry env activate)
 ```
 
-Alternatively, you can clone the repository and install the dependencies locally using pip:
+### Using Pip
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/giansimone/ppo-mujoco-halfcheetah.git
 cd ppo-mujoco-halfcheetah
-python -m venv venv
+
+# 2. Create and activate virtual environment
+python3.13 -m venv venv
 source venv/bin/activate
+
+# 3. Install package in editable mode
 pip install -e .
 ```
 
@@ -33,14 +44,14 @@ pip install -e .
 ppo-mujoco-halfcheetah/
 ├── ppo_mujoco_halfcheetah/
 │   ├── __init__.py
-│   ├── agent.py
-│   ├── buffer.py
-│   ├── config.yaml
-│   ├── enjoy.yaml
-│   ├── environment.py
-│   ├── export.py
-│   ├── model.py
-│   ├── train.py
+│   ├── agent.py       # PPO implementation (Actor/Critic)
+│   ├── buffer.py      # Rollout Buffer
+│   ├── config.yaml    # Training hyperparameters
+│   ├── environment.py # Gym environment wrappers
+│   ├── enjoy.py       # Evaluation script
+│   ├── export.py      # Hugging Face export script
+│   ├── model.py       # PyTorch Network definitions
+│   ├── train.py       # Main training loop
 │   └── utils.py
 ├── .gitignore
 ├── LICENSE
@@ -48,19 +59,27 @@ ppo-mujoco-halfcheetah/
 └── pyproject.toml
 ```
 
-## Quick Start
+## Usage
+
+Ensure you are in the ```ppo_mujoco_halfcheetah``` source directory where ```config.yaml``` is located before running these commands.
+
+```bash
+cd ppo_mujoco_halfcheetah
+```
 
 ### Training
 
-Train a PPO agent with the default configuration:
+Train a PPO agent with the default configuration.
+
+**Note:** The Replay Buffer pre-allocates memory. Ensure your system has at least 8GB of RAM available.
 
 ```bash
-python -m ppo_mujoco_halfcheetah.train
+python -m train
 ```
 
 ### Configuration
 
-Edit ```config.yaml``` to customise training parameters such as learning rate, number of episodes, and more.
+Edit ```config.yaml``` to customise training parameters.
 
 ```yaml
 #Environment
@@ -97,28 +116,30 @@ seed: 42
 Watch a trained agent by running the enjoy script:
 
 ```bash
-python -m ppo_mujoco_halfcheetah.enjoy \
-    --artifact-path runs/ppo_YYYY-MM-DD_HHhMMmSSs/final_model.pt \
-    --num-episodes 1
+python -m enjoy \
+    --artifact runs/ppo_HalfCheetah-v5_YYYY-MM-DD_HHhMMmSSs/final_model.pt \
+    --num-episodes 5
 ```
 ### Exporting to Hugging Face Hub
 
-Share your trained model on the Hugging Face Hub:
+Share your trained model, config, and a replay video to the Hugging Face Hub.
 
 ```bash
-python -m ppo_mujoco_halfcheetah.export \
+python -m export \
     --username YOUR_HF_USERNAME \
     --repo-name ppo-mujoco-halfcheetah \
-    --artifact-path runs/ppo_YYYY-MM-DD_HHhMMmSSs/final_model.pt \
-    --movie-fps 30 
+    --artifact-path runs/ppo_HalfCheetah-v5_YYYY-MM-DD_HHhMMmSSs/final_model.pt \
+    --movie-fps 30 \
+    --n-eval 10
 ```
 
-This will:
+This will automatically:
 
-- Create a repository on Hugging Face Hub.
-- Upload the model weights, configuration, and evaluation results.
-- Generate and upload a replay movie.
-- Create a model card with usage instructions.
+- Upload the model weights and config.
+
+- Generate a model card with evaluation metrics (Mean Reward +/- Std).
+
+- Record and upload a video of the agent.
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
