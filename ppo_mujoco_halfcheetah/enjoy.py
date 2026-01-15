@@ -19,7 +19,7 @@ def enjoy(artifact_path: Path, n_episodes: int) -> None:
 
     env, state_dim, action_dim = make_env(
         env_id,
-        render_mode="human",
+        render_mode=None,
     )
 
     agent = SimpleAgent(state_dim, action_dim, hidden_dim)
