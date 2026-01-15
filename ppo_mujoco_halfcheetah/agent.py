@@ -14,6 +14,10 @@ from model import ActorCritic
 from buffer import RolloutBuffer
 
 
+REWARD_COMPONENT_WEIGHTS = torch.tensor([1.0, 0.1], dtype=torch.float32)
+NUM_REWARD_COMPONENTS = 2
+
+
 class Agent:
     """Proximal Policy Optimisation (PPO) Agent."""
     def __init__(
@@ -52,11 +56,18 @@ class Agent:
             state_dim,
             action_dim,
             hidden_dim,
+            num_value_heads=NUM_REWARD_COMPONENTS,
         ).to(self.device)
         self.optimiser = optim.Adam(self.policy.parameters(), lr=self.lr)
+        self.reward_component_weights = REWARD_COMPONENT_WEIGHTS.to(self.device)
 
         self.buffer = RolloutBuffer(
-            n_steps, num_envs, state_dim, action_dim, device
+            n_steps,
+            num_envs,
+            state_dim,
+            action_dim,
+            NUM_REWARD_COMPONENTS,
+            device,
         )
 
     def select_action(
@@ -67,7 +78,7 @@ class Agent:
         with torch.no_grad():
             action, log_prob, value = self.policy.act(state_tensor, deterministic)
 
-        return action, log_prob, value.squeeze(-1)
+        return action, log_prob, value
 
     def calculate_gae(
         self,
@@ -77,14 +88,17 @@ class Agent:
         next_value: torch.Tensor,
     ) -> torch.Tensor:
         """Calculate Generalised Advantage Estimation (GAE)."""
-        n_steps, num_envs = rewards.shape
-        advantages = torch.zeros(n_steps, num_envs).to(self.device)
+        n_steps, num_envs, num_components = rewards.shape
+        advantages = torch.zeros(
+            (n_steps, num_envs, num_components)
+        ).to(self.device)
 
-        gae = torch.zeros(num_envs).to(self.device)
+        gae = torch.zeros((num_envs, num_components)).to(self.device)
 
         for t in reversed(range(n_steps)):
-            delta = rewards[t] + self.gamma * next_value * (1 - dones[t]) - values[t]
-            gae = delta + self.gamma * self.gae_lambda * (1 - dones[t]) * gae
+            done_mask = (1 - dones[t].float()).unsqueeze(-1)
+            delta = rewards[t] + self.gamma * next_value * done_mask - values[t]
+            gae = delta + self.gamma * self.gae_lambda * done_mask * gae
             advantages[t] = gae
 
             next_value = values[t]
@@ -98,25 +112,27 @@ class Agent:
         self.optimiser.param_groups[0]["lr"] = self.lr
         self.lr -= self.init_lr / self.total_updates
 
-        states, actions, old_log_probs, rewards_2d, old_values_flat, dones_2d = self.buffer.get()
+        states, actions, old_log_probs, rewards_3d, old_values_flat, dones_2d = self.buffer.get()
 
-        old_values_2d = old_values_flat.reshape(rewards_2d.shape)
+        old_values_3d = old_values_flat.reshape(rewards_3d.shape)
 
         with torch.no_grad():
             next_state_tensor = torch.tensor(
                 next_state, dtype=torch.float32
             ).to(self.device)
             _, _, last_value_tensor = self.policy.forward(next_state_tensor)
-            next_value = last_value_tensor.squeeze()
+            next_value = last_value_tensor
 
-        advantages = self.calculate_gae(rewards_2d, old_values_2d, dones_2d, next_value)
+        advantages = self.calculate_gae(rewards_3d, old_values_3d, dones_2d, next_value)
 
-        returns = advantages + old_values_2d
+        returns = advantages + old_values_3d
 
-        advantages = advantages.reshape(-1)
-        returns = returns.reshape(-1)
+        advantages = advantages.reshape(-1, NUM_REWARD_COMPONENTS)
+        returns = returns.reshape(-1, NUM_REWARD_COMPONENTS)
 
-        advantages = (advantages - advantages.mean()) / (advantages.std() + eps)
+        adv_mean = advantages.mean(dim=0, keepdim=True)
+        adv_std = advantages.std(dim=0, keepdim=True)
+        advantages = (advantages - adv_mean) / (adv_std + eps)
 
         rollout_size = len(states)
 
@@ -139,9 +155,7 @@ class Agent:
                     batch_states, batch_actions
                 )
 
-                current_values = current_values.squeeze()
-
-                ratios = torch.exp(current_log_probs - batch_old_log_probs)
+                ratios = torch.exp(current_log_probs - batch_old_log_probs).unsqueeze(-1)
 
                 surr1 = ratios * batch_advantages
                 surr2 = (
@@ -149,7 +163,8 @@ class Agent:
                     batch_advantages
                 )
 
-                actor_loss = - torch.min(surr1, surr2).mean()
+                per_component_policy_loss = - torch.min(surr1, surr2).mean(dim=0)
+                actor_loss = (per_component_policy_loss * self.reward_component_weights).sum()
 
                 values_clipped = batch_old_values + torch.clamp(
                     current_values - batch_old_values,
@@ -171,7 +186,9 @@ class Agent:
                 self.optimiser.zero_grad()
                 loss.backward()
 
-                nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm) 
+                print(loss)
+
+                nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
 
                 self.optimiser.step()
 
@@ -221,7 +238,7 @@ class SimpleAgent:
         self.device = device
 
         self.policy = ActorCritic(
-            state_dim, action_dim, hidden_dim
+            state_dim, action_dim, hidden_dim, num_value_heads=NUM_REWARD_COMPONENTS
         ).to(self.device)
 
     def select_action(

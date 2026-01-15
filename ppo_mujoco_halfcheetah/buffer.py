@@ -15,12 +15,14 @@ class RolloutBuffer:
         num_envs: int,
         state_dim: int,
         action_dim: int,
+        num_reward_components: int,
         device: torch.device | None = None,
     ):
         self.n_steps = n_steps
         self.num_envs = num_envs
         self.state_dim = state_dim
         self.action_dim = action_dim
+        self.num_reward_components = num_reward_components
         self.device = device
 
         self.states = torch.zeros(
@@ -30,8 +32,12 @@ class RolloutBuffer:
             (n_steps, num_envs, action_dim)
         ).to(self.device)
         self.log_probs = torch.zeros((n_steps, num_envs)).to(self.device)
-        self.rewards = torch.zeros((n_steps, num_envs)).to(self.device)
-        self.values = torch.zeros((n_steps, num_envs)).to(self.device)
+        self.rewards = torch.zeros(
+            (n_steps, num_envs, num_reward_components)
+        ).to(self.device)
+        self.values = torch.zeros(
+            (n_steps, num_envs, num_reward_components)
+        ).to(self.device)
         self.dones = torch.zeros(
             (n_steps, num_envs), dtype=torch.int64
         ).to(self.device)
@@ -77,6 +83,6 @@ class RolloutBuffer:
         states = self.states.reshape(-1, self.state_dim)
         actions = self.actions.reshape(-1, self.action_dim)
         log_probs = self.log_probs.reshape(-1)
-        values = self.values.reshape(-1)
+        values = self.values.reshape(-1, self.num_reward_components)
 
         return states, actions, log_probs, self.rewards, values, self.dones

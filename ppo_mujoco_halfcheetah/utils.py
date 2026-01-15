@@ -12,6 +12,13 @@ import imageio.v3 as iio
 
 from agent import SimpleAgent
 
+REWARD_COMPONENT_WEIGHTS = np.array([1.0, 0.1], dtype=np.float32)
+
+
+def combine_reward_components(reward_components: np.ndarray) -> np.ndarray:
+    """Combine reward components into a scalar using fixed weights."""
+    return np.sum(reward_components * REWARD_COMPONENT_WEIGHTS, axis=-1)
+
 
 def set_seed(seed: int) -> None:
     """Set the random seed for reproducibility."""

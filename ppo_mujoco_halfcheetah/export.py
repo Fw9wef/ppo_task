@@ -16,7 +16,7 @@ from huggingface_hub.repocard import metadata_eval_result, metadata_save
 
 from agent import SimpleAgent
 from environment import make_env
-from utils import load_config, record_movie
+from utils import load_config, record_movie, combine_reward_components
 
 
 def evaluate_agent(
@@ -35,10 +35,10 @@ def evaluate_agent(
 
         while not done:
             action = agent.select_action(state, deterministic=True)
-            next_state, reward, terminated, truncated, _ = env.step(action)
+            next_state, reward_components, terminated, truncated, _ = env.step(action)
             done = terminated or truncated
             state = next_state
-            score += float(reward)
+            score += float(combine_reward_components(reward_components))
 
         scores.append(score)
 

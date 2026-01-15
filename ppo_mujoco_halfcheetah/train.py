@@ -5,6 +5,7 @@ from pathlib import Path
 from datetime import datetime
 
 import torch
+import numpy as np
 
 from agent import Agent
 from environment import make_vec_env
@@ -68,15 +69,16 @@ def train(config_filename: Path = Path("config.yaml")):
 
             action = action_tensor.cpu().numpy()
 
-            next_state, reward, terminated, _, _ = envs.step(action)
+            next_state, reward_components, terminated, truncated, _ = envs.step(action)
+            done = np.logical_or(terminated, truncated)
 
             agent.buffer.add(
                 torch.tensor(state),
                 action_tensor,
                 log_prob,
-                reward,
+                reward_components,
                 value,
-                terminated,
+                done,
             )
 
             state = next_state

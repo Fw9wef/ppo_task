@@ -6,7 +6,7 @@ from pathlib import Path
 
 from agent import SimpleAgent
 from environment import make_env
-from utils import load_config
+from utils import load_config, combine_reward_components
 
 
 def enjoy(artifact_path: Path, n_episodes: int) -> None:
@@ -33,12 +33,12 @@ def enjoy(artifact_path: Path, n_episodes: int) -> None:
         while not done:
             action = agent.select_action(state, deterministic=True)
 
-            next_state, reward, terminated, truncated, _ = env.step(action)
+            next_state, reward_components, terminated, truncated, _ = env.step(action)
 
             done = terminated or truncated
 
             state = next_state
-            episode_reward += float(reward)
+            episode_reward += float(combine_reward_components(reward_components))
 
         print(f"MuJoCo Half Cheetah Episode {episode} | Reward: {episode_reward:.2f}")
 
