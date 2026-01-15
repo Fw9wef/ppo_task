@@ -209,3 +209,6 @@ __marimo__/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+
+ppo_mujoco_halfcheetah/runs
