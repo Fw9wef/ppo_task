@@ -122,4 +122,4 @@ def check_math(config_filename: Path = Path("config.yaml")):
 
 if __name__ == "__main__":
     correct = check_math()
-    print(correct)
+    print(f"-=-={correct}=-=-")
