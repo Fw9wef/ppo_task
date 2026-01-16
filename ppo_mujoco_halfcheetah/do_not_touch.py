@@ -103,7 +103,7 @@ def check_math(config_filename: Path = Path("config.yaml")):
     
     # Compare the weights between the new network and the reference
     reference_agent = Agent(**agent_config)
-    reference_agent.load_model(Path("../../reference_model.pt"))
+    reference_agent.load_model(Path("../reference_model.pt"))
 
     agent_state = agent.policy.state_dict()
     reference_state = reference_agent.policy.state_dict()
