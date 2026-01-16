@@ -24,7 +24,7 @@ class ActorCritic(nn.Module):
         )
 
         self.actor_head = nn.Linear(hidden_dim, action_dim)
-        self.critic_head = nn.Linear(hidden_dim, 1)
+        self.value_head = nn.Linear(hidden_dim, 1)
 
         self.log_std_head = nn.Linear(hidden_dim, action_dim)
 
