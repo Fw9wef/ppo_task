@@ -59,9 +59,9 @@ class HalfCheetahRewardComponentVectorWrapper(gym.vector.VectorWrapper):
         ctrl_weight = self._get_weight("ctrl_cost_weight", 1.0)
 
         if forward_weight != 0:
-            forward = np.asarray(forward) / forward_weight
+            forward = np.asarray(forward) * forward_weight
         if ctrl_weight != 0:
-            ctrl = np.asarray(ctrl) / ctrl_weight
+            ctrl = np.asarray(ctrl) * ctrl_weight
 
         reward_components = np.stack([forward, ctrl], axis=-1).astype(np.float32)
         return reward_components

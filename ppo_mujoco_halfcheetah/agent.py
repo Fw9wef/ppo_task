@@ -186,8 +186,6 @@ class Agent:
                 self.optimiser.zero_grad()
                 loss.backward()
 
-                print(loss)
-
                 nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
 
                 self.optimiser.step()
