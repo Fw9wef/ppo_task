@@ -12,7 +12,7 @@ from environment import make_vec_env
 from utils import set_seed, load_config, save_config
 
 
-def train(config_filename: Path = Path("config.yaml")):
+def train(config_filename: Path = Path("config.yaml"), test_run=False):
     """Train the PPO agent in the MuJoCo Half Cheetah environment."""
     config = load_config(config_filename)
     set_seed(config["seed"])
@@ -83,9 +83,15 @@ def train(config_filename: Path = Path("config.yaml")):
 
             state = next_state
 
-        agent.learn(next_state)
+            if test_run:
+                break
+
+        agent.learn(next_state, test_run)
 
         print(f"Update {update}/{num_updates} completed.")
+
+        if test_run:
+            break
 
     agent.save_model(run_dir / "final_model.pt")
 

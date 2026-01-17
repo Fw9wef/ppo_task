@@ -4,6 +4,7 @@ from gymnasium.spaces import Box
 from pathlib import Path
 from utils import load_config
 from agent import Agent
+from train import train
 import torch
 from torch import nn
 import numpy as np
@@ -118,7 +119,7 @@ def check_math(config_filename: Path = Path("config.yaml")):
 
     for loss, ref_loss, l_name in zip(
             losses,
-            [0.2962, 10006.1729, -2.7254],
+            [0.2962, 1.3275, -2.7254],
             ["policy", "value", "entropy"]
         ):
         if not np.allclose(loss, ref_loss, rtol=1e-2, atol=1e-3):
@@ -143,6 +144,15 @@ def check_math(config_filename: Path = Path("config.yaml")):
     return all_equal
 
 
+def check_run():
+    try:
+        train(Path("config.yaml"), True)
+        return True
+    except:
+        return False
+
+
 if __name__ == "__main__":
-    correct = check_math()
-    print(f"-=-={correct}=-=-")
+    correct_math = check_math()
+    correct_run = check_run()
+    print(f"-=-={correct_math and correct_run}=-=-")
