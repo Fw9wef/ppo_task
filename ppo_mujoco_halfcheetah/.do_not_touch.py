@@ -4,6 +4,7 @@ from gymnasium.spaces import Box
 from pathlib import Path
 from utils import load_config
 from agent import Agent
+from train import train
 import torch
 from torch import nn
 import numpy as np
@@ -143,6 +144,15 @@ def check_math(config_filename: Path = Path("config.yaml")):
     return all_equal
 
 
+def check_run():
+    try:
+        train(Path("config.yaml"), True)
+        return True
+    except:
+        return False
+
+
 if __name__ == "__main__":
-    correct = check_math()
-    print(f"-=-={correct}=-=-")
+    correct_math = check_math()
+    correct_run = check_run()
+    print(f"-=-={correct_math and correct_run}=-=-")

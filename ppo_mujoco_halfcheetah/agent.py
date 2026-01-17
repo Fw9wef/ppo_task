@@ -91,7 +91,7 @@ class Agent:
 
         return advantages
 
-    def learn(self, next_state: np.ndarray) -> None:
+    def learn(self, next_state: np.ndarray, test_run: bool = False) -> None:
         """Update policy and value networks using PPO."""
         eps = 1e-8
 
@@ -174,6 +174,12 @@ class Agent:
                 nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm) 
 
                 self.optimiser.step()
+
+                if test_run:
+                    break
+            
+            if test_run:
+                break
 
         self.buffer.clear()
         return (
