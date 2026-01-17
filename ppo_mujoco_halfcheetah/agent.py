@@ -173,7 +173,7 @@ class Agent:
                 )
                 loss_v1 = F.mse_loss(current_values, batch_returns, reduction="none")
                 loss_v2 = F.mse_loss(values_clipped, batch_returns, reduction="none")
-                critic_loss = torch.max(loss_v1, loss_v2).mean()
+                critic_loss = torch.max(loss_v1, loss_v2).sum(dim=1).mean()
 
                 entropy_loss = - entropy.mean()
 
@@ -191,6 +191,11 @@ class Agent:
                 self.optimiser.step()
 
         self.buffer.clear()
+        return (
+            actor_loss.cpu().item(),
+            critic_loss.cpu().item(),
+            entropy_loss.cpu().item(),
+        )
 
     def save_model(self, filepath: Path) -> None:
         """Save the model to the specified filepath."""

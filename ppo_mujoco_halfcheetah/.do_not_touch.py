@@ -6,6 +6,19 @@ from utils import load_config
 from agent import Agent
 import torch
 from torch import nn
+import numpy as np
+import random
+import os
+
+
+def set_seed(seed):
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    print(f"Random seed set as {seed}")
 
 
 class DummyEnv(gym.Env):
@@ -43,6 +56,7 @@ class DummyEnv(gym.Env):
 
 
 def check_math(config_filename: Path = Path("config.yaml")):
+    set_seed(123)
     env_fns = [lambda: DummyEnv() for _ in range(2)]
     envs = gym.vector.AsyncVectorEnv(env_fns)
     
@@ -99,11 +113,20 @@ def check_math(config_filename: Path = Path("config.yaml")):
 
             state = next_state
 
-        agent.learn(next_state)
+        losses = agent.learn(next_state)
+    print(losses)
+
+    for loss, ref_loss, l_name in zip(
+            losses,
+            [0.2962, 10006.1729, -2.7254],
+            ["policy", "value", "entropy"]
+        ):
+        if not np.allclose(loss, ref_loss, rtol=1e-2, atol=1e-3):
+            print(f"{l_name} loss does not match with reference")
     
     # Compare the weights between the new network and the reference
     reference_agent = Agent(**agent_config)
-    reference_agent.load_model(Path("../../reference_model.pt"))
+    reference_agent.load_model(Path("reference_model.pt"))
 
     agent_state = agent.policy.state_dict()
     reference_state = reference_agent.policy.state_dict()
