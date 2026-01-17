@@ -84,7 +84,7 @@ def train(config_filename: Path = Path("config.yaml"), test_run: bool = False):
             if test_run:
                 break
 
-        agent.learn(next_state)
+        agent.learn(next_state, test_run)
 
         print(f"Update {update}/{num_updates} completed.")
 
