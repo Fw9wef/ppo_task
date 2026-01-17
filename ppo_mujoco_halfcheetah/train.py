@@ -95,6 +95,7 @@ def train(config_filename: Path = Path("config.yaml"), test_run: bool = False):
 
     envs.close()
     print("Train completed")
+    return run_dir / "final_model.pt"
 
 
 if __name__ == "__main__":

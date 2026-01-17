@@ -5,6 +5,7 @@ from pathlib import Path
 from utils import load_config
 from agent import Agent
 from train import train
+from enjoy import enjoy
 import torch
 from torch import nn
 import numpy as np
@@ -146,7 +147,8 @@ def check_math(config_filename: Path = Path("config.yaml")):
 
 def check_run():
     try:
-        train(Path("config.yaml"), True)
+        model_path = train(Path("config.yaml"), True)
+        enjoy(model_path, 1)
         return True
     except:
         return False
