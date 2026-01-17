@@ -176,6 +176,11 @@ class Agent:
                 self.optimiser.step()
 
         self.buffer.clear()
+        return (
+            actor_loss.cpu().item(),
+            critic_loss.cpu().item(),
+            entropy_loss.cpu().item(),
+        )
 
     def save_model(self, filepath: Path) -> None:
         """Save the model to the specified filepath."""

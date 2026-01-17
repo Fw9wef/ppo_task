@@ -42,7 +42,7 @@ class ActorCritic(nn.Module):
         )
         action_std = action_log_std.exp()
 
-        state_value = self.critic_head(x)
+        state_value = self.value_head(x)
 
         return action_mean, action_std, state_value
 
