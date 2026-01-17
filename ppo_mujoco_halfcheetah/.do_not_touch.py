@@ -48,7 +48,7 @@ class DummyEnv(gym.Env):
     def step(self, action):
         self.step_count += 1
         observation = np.zeros((2,), dtype=np.float32)
-        reward = np.array([float(self.step_count/2), float(self.step_count/5)])
+        reward = np.array([float(1e-2 * self.step_count/2), float(1e-2 * self.step_count/5)])
         terminated = False
         truncated = False
         info = {}
