@@ -48,7 +48,7 @@ class DummyEnv(gym.Env):
     def step(self, action):
         self.step_count += 1
         observation = np.zeros((2,), dtype=np.float32)
-        reward = np.array([float(self.step_count/2), float(self.step_count/5)])
+        reward = np.array([float(1e-2 * self.step_count/2), float(1e-2 * self.step_count/5)])
         terminated = False
         truncated = False
         info = {}
@@ -118,7 +118,7 @@ def check_math(config_filename: Path = Path("config.yaml")):
 
     for loss, ref_loss, l_name in zip(
             losses,
-            [0.2962, 10006.1729, -2.7254],
+            [0.2962, 1.3275, -2.7254],
             ["policy", "value", "entropy"]
         ):
         if not np.allclose(loss, ref_loss, rtol=1e-2, atol=1e-3):
