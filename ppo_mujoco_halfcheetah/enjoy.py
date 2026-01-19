@@ -6,7 +6,7 @@ from pathlib import Path
 
 from agent import SimpleAgent
 from environment import make_env
-from utils import load_config, combine_reward_components
+from utils import load_config
 
 
 def enjoy(artifact_path: Path, n_episodes: int) -> None:
@@ -16,13 +16,14 @@ def enjoy(artifact_path: Path, n_episodes: int) -> None:
 
     env_id = config["env_id"]
     hidden_dim = config["hidden_dim"]
+    num_reward_components = config["num_reward_components"]
 
     env, state_dim, action_dim = make_env(
         env_id,
         render_mode="human",
     )
 
-    agent = SimpleAgent(state_dim, action_dim, hidden_dim)
+    agent = SimpleAgent(state_dim, action_dim, hidden_dim, num_reward_components)
     agent.load_model(artifact_path)
 
     for episode in range(1, n_episodes + 1):
@@ -38,7 +39,7 @@ def enjoy(artifact_path: Path, n_episodes: int) -> None:
             done = terminated or truncated
 
             state = next_state
-            episode_reward += float(combine_reward_components(reward_components))
+            episode_reward += float(sum(reward_components))
 
         print(f"MuJoCo Half Cheetah Episode {episode} | Reward: {episode_reward:.2f}")
 

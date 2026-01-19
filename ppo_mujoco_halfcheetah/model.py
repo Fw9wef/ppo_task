@@ -30,9 +30,7 @@ class ActorCritic(nn.Module):
         )
 
         self.actor_head = nn.Linear(hidden_dim, action_dim)
-        self.value_heads = nn.ModuleList(
-            [nn.Linear(hidden_dim, 1) for _ in range(num_value_heads)]
-        )
+        self.value_heads = nn.Linear(hidden_dim, num_value_heads)
 
         self.log_std_head = nn.Linear(hidden_dim, action_dim)
 
@@ -50,7 +48,7 @@ class ActorCritic(nn.Module):
         )
         action_std = action_log_std.exp()
 
-        state_values = torch.cat([head(x) for head in self.value_heads], dim=-1)
+        state_values = self.value_heads(x)
 
         return action_mean, action_std, state_values
 

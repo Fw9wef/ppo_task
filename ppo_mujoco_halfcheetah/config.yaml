@@ -19,6 +19,8 @@ value_coef: 0.5
 entropy_coef: 0.01
 max_grad_norm: 0.5
 ppo_epochs: 10
+num_reward_components: 2
+reward_components: [1.0, 0.1]
 
 #Logging
 log_dir: runs/

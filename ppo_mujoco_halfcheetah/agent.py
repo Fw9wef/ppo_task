@@ -14,10 +14,6 @@ from model import ActorCritic
 from buffer import RolloutBuffer
 
 
-REWARD_COMPONENT_WEIGHTS = torch.tensor([1.0, 0.1], dtype=torch.float32)
-NUM_REWARD_COMPONENTS = 2
-
-
 class Agent:
     """Proximal Policy Optimisation (PPO) Agent."""
     def __init__(
@@ -37,6 +33,8 @@ class Agent:
         entropy_coef: float,
         max_grad_norm: float,
         total_updates: int,
+        num_reward_components: int = 2,
+        reward_components: list[int] = [1.0, 0.1],
         device: torch.device | None = None,
     ) -> None:
         self.lr = lr
@@ -56,17 +54,19 @@ class Agent:
             state_dim,
             action_dim,
             hidden_dim,
-            num_value_heads=NUM_REWARD_COMPONENTS,
+            num_value_heads=num_reward_components,
         ).to(self.device)
         self.optimiser = optim.Adam(self.policy.parameters(), lr=self.lr)
-        self.reward_component_weights = REWARD_COMPONENT_WEIGHTS.to(self.device)
+        self.num_reward_components = num_reward_components
+        self.reward_components = torch.tensor(reward_components, dtype=torch.float32)
+        self.reward_component_weights = self.reward_components.to(self.device)
 
         self.buffer = RolloutBuffer(
             n_steps,
             num_envs,
             state_dim,
             action_dim,
-            NUM_REWARD_COMPONENTS,
+            self.num_reward_components,
             device,
         )
 
@@ -127,8 +127,8 @@ class Agent:
 
         returns = advantages + old_values_3d
 
-        advantages = advantages.reshape(-1, NUM_REWARD_COMPONENTS)
-        returns = returns.reshape(-1, NUM_REWARD_COMPONENTS)
+        advantages = advantages.reshape(-1, self.num_reward_components)
+        returns = returns.reshape(-1, self.num_reward_components)
 
         adv_mean = advantages.mean(dim=0, keepdim=True)
         adv_std = advantages.std(dim=0, keepdim=True)
@@ -242,12 +242,13 @@ class SimpleAgent:
         state_dim: int,
         action_dim: int,
         hidden_dim: int,
+        num_reward_components: int,
         device: torch.device | None = None,
     ):
         self.device = device
 
         self.policy = ActorCritic(
-            state_dim, action_dim, hidden_dim, num_value_heads=NUM_REWARD_COMPONENTS
+            state_dim, action_dim, hidden_dim, num_value_heads=num_reward_components
         ).to(self.device)
 
     def select_action(
