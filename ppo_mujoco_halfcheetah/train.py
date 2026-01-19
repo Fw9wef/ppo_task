@@ -96,6 +96,7 @@ def train(config_filename: Path = Path("config.yaml"), test_run=False):
     agent.save_model(run_dir / "final_model.pt")
 
     envs.close()
+    return run_dir / "final_model.pt"
 
 
 if __name__ == "__main__":
