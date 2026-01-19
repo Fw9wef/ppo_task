@@ -154,22 +154,22 @@ def check_math():
 
 
 def check_run():
-    #try:
-    model_path = train(Path("config.yaml"), True)
-    enjoy(model_path, 1)
+    try:
+        model_path = train(Path("config.yaml"), True)
+        enjoy(model_path, 1)
 
-    # let's make sure that the trained model is compatible with the two-component config
-    # this will tell us that train and enjoy were adapted and work with multi-component rewards
-    agent_config = get_config()
-    agent_config["num_envs"] = 8
-    agent_config["state_dim"] = 17  # actual HalfCheetah env parameters
-    agent_config["action_dim"] = 6
-    agent = Agent(**agent_config)  # this model has a multihead value function
-    agent.load_model(model_path)  # the newly trained model must be compatible
-    return True
-    #except Exception as e:
-    #    print(f"Error: Run check failed: {e}")
-    #    return False
+        # let's make sure that the trained model is compatible with the two-component config
+        # this will tell us that train and enjoy were adapted and work with multi-component rewards
+        agent_config = get_config()
+        agent_config["num_envs"] = 8
+        agent_config["state_dim"] = 17  # actual HalfCheetah env parameters
+        agent_config["action_dim"] = 6
+        agent = Agent(**agent_config)  # this model has a multihead value function
+        agent.load_model(model_path)  # the newly trained model must be compatible
+        return True
+    except Exception as e:
+        print(f"Error: Run check failed: {e}")
+        return False
 
 
 if __name__ == "__main__":
